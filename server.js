@@ -33,7 +33,7 @@ function loadConfig() {
 var config = loadConfig();
 
 function authenticate(code, cb) {
-  var data = qs.encode({
+  var data = qs.stringify({
     client_id: config.oauth_client_id,
     client_secret: config.oauth_client_secret,
     code: code
@@ -54,7 +54,7 @@ function authenticate(code, cb) {
     res.setEncoding('utf8');
     res.on('data', function (chunk) { body += chunk; });
     res.on('end', function () {
-      cb(null, body);
+      cb(null, JSON.stringify(qs.parse(body)));
     });
   });
 
@@ -125,7 +125,7 @@ app.get('/authenticate/:code', function (req, res) {
       log(result.error);
       log(response);
     } else {
-      result = {token: response};
+      result = response;
       log("token", result, true);
     }
     res.header('Access-Control-Allow-Origin', '*');
