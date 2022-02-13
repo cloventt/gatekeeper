@@ -77,7 +77,9 @@ function refresh(code, cb) {
     path: config.oauth_path,
     method: config.oauth_method,
     headers: {
-      'content-length': data.length
+      'content-length': data.length,
+      'content-type': 'application/json',
+      'accept': 'application/json'
     }
   };
 
