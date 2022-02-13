@@ -125,19 +125,20 @@ function log(label, value, sanitized) {
 
 app.get('/authenticate/:code', function(req, res) {
   log('authenticating code:', req.params.code, true);
-  authenticate(req.params.code, req.params.state, req.params.redirect_uri, function(err, token) {
+  authenticate(req.params.code, req.params.state, req.params.redirect_uri, function(err, response) {
     var result
-    if ( err || !token ) {
+    if ( err || !response ) {
       result = {"error": err || "bad_code"};
       log(result.error);
+      log(response);
     } else {
-      result = {"token": token};
-      log("token", result.token, true);
+      result = response;
+      log("token", result, true);
     }
     res.header('Access-Control-Allow-Origin', '*');
     res.header('Access-Control-Allow-Methods', 'GET, OPTIONS');
     res.header('Access-Control-Allow-Headers', 'Content-Type');
-    res.json(result);
+    res.json(response);
   });
 });
 
@@ -147,14 +148,15 @@ app.get('/refresh/:code', function(req, res) {
     if ( err || !token ) {
       result = {"error": err || "bad_code"};
       log(result.error);
+      log(response);
     } else {
-      result = {"token": token};
+      result = response;
       log("token", response, true);
     }
     res.header('Access-Control-Allow-Origin', '*');
     res.header('Access-Control-Allow-Methods', 'GET, OPTIONS');
     res.header('Access-Control-Allow-Headers', 'Content-Type');
-    res.json(response);
+    res.json(result);
   });
 });
 
