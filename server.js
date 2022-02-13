@@ -32,13 +32,11 @@ function loadConfig() {
 
 var config = loadConfig();
 
-function authenticate(code, state, redirect_uri, cb) {
+function authenticate(code, cb) {
   var data = JSON.stringify({
     client_id: config.oauth_client_id,
     client_secret: config.oauth_client_secret,
-    code: code,
-    redirect_uri: redirect_uri,
-    state: state,
+    code: code
   });
 
   var reqOptions = {
@@ -125,7 +123,7 @@ function log(label, value, sanitized) {
 
 app.get('/authenticate/:code', function(req, res) {
   log('authenticating code:', req.params.code, true);
-  authenticate(req.params.code, req.params.state, req.params.redirect_uri, function(err, response) {
+  authenticate(req.params.code, function(err, response) {
     var result
     if ( err || !response ) {
       result = {"error": err || "bad_code"};
@@ -138,7 +136,7 @@ app.get('/authenticate/:code', function(req, res) {
     res.header('Access-Control-Allow-Origin', '*');
     res.header('Access-Control-Allow-Methods', 'GET, OPTIONS');
     res.header('Access-Control-Allow-Headers', 'Content-Type');
-    res.json(response);
+    res.json(result);
   });
 });
 
