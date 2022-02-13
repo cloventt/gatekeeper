@@ -1,19 +1,19 @@
-var url     = require('url'),
-    http    = require('http'),
-    https   = require('https'),
-    fs      = require('fs'),
-    qs      = require('querystring'),
-    express = require('express'),
-    app     = express();
+var url = require('url'),
+  http = require('http'),
+  https = require('https'),
+  fs = require('fs'),
+  qs = require('querystring'),
+  express = require('express'),
+  app = express();
 
 var TRUNCATE_THRESHOLD = 10,
-    REVEALED_CHARS = 3,
-    REPLACEMENT = '***';
+  REVEALED_CHARS = 3,
+  REPLACEMENT = '***';
 
 // Load config defaults from JSON file.
 // Environment variables override defaults.
 function loadConfig() {
-  var config = JSON.parse(fs.readFileSync(__dirname+ '/config.json', 'utf-8'));
+  var config = JSON.parse(fs.readFileSync(__dirname + '/config.json', 'utf-8'));
   log('Configuration');
   for (var i in config) {
     var configItem = process.env[i.toUpperCase()] || config[i];
@@ -32,41 +32,37 @@ function loadConfig() {
 
 var config = loadConfig();
 
-function authenticate(code, state, cb) {
-  var data = {
+function authenticate(code, cb) {
+  var data = JSON.stringify({
     client_id: config.oauth_client_id,
     client_secret: config.oauth_client_secret,
     code: code
-  };
-
-  if (state != null) {
-    data.state = state;
-  }
+  });
 
   var reqOptions = {
     host: config.oauth_host,
     port: config.oauth_port,
     path: config.oauth_path,
     method: config.oauth_method,
-    headers: { 
-      'content-length': JSON.stringify(data).length, 
-      'content-type': 'application/json', 
-      'accept': 'applicaton/json' 
+    headers: {
+      'content-length': data.length,
+      'content-type': 'application/json',
+      'accept': 'applicaton/json'
     }
   };
 
   var body = "";
-  var req = https.request(reqOptions, function(res) {
+  var req = https.request(reqOptions, function (res) {
     res.setEncoding('utf8');
     res.on('data', function (chunk) { body += chunk; });
-    res.on('end', function() {
-      cb(null, body);
+    res.on('end', function () {
+      req.write(data);
     });
   });
 
   req.write(JSON.stringify(data));
   req.end();
-  req.on('error', function(e) { cb(e.message); });
+  req.on('error', function (e) { cb(e.message); });
 }
 
 function refresh(code, cb) {
@@ -82,25 +78,25 @@ function refresh(code, cb) {
     port: config.oauth_port,
     path: config.oauth_path,
     method: config.oauth_method,
-    headers: { 
-      'content-length': data.length, 
-      'content-type': 'application/json', 
-      'accept': 'applicaton/json' 
+    headers: {
+      'content-length': data.length,
+      'content-type': 'application/json',
+      'accept': 'applicaton/json'
     }
   };
 
   var body = "";
-  var req = https.request(reqOptions, function(res) {
+  var req = https.request(reqOptions, function (res) {
     res.setEncoding('utf8');
     res.on('data', function (chunk) { body += chunk; });
-    res.on('end', function() {
+    res.on('end', function () {
       cb(null, body);
     });
   });
 
   req.write(data);
   req.end();
-  req.on('error', function(e) { cb(e.message); });
+  req.on('error', function (e) { cb(e.message); });
 }
 
 /**
@@ -113,8 +109,8 @@ function refresh(code, cb) {
  */
 function log(label, value, sanitized) {
   value = value || '';
-  if (sanitized){
-    if (typeof(value) === 'string' && value.length > TRUNCATE_THRESHOLD){
+  if (sanitized) {
+    if (typeof (value) === 'string' && value.length > TRUNCATE_THRESHOLD) {
       console.log(label, value.substring(REVEALED_CHARS, 0) + REPLACEMENT);
     } else {
       console.log(label, REPLACEMENT);
@@ -124,13 +120,12 @@ function log(label, value, sanitized) {
   }
 }
 
-
-app.get('/authenticate/:code', function(req, res) {
+app.get('/authenticate/:code', function (req, res) {
   log('authenticating code:', req.params.code, true);
-  authenticate(req.params.code, req.query.state, function(err, response) {
+  authenticate(req.params.code, function (err, response) {
     var result
-    if ( err || !response ) {
-      result = {"error": err || "bad_code"};
+    if (err || !response) {
+      result = { "error": err || "bad_code" };
       log(result.error);
       log(response);
     } else {
@@ -144,11 +139,11 @@ app.get('/authenticate/:code', function(req, res) {
   });
 });
 
-app.get('/refresh/:code', function(req, res) {
+app.get('/refresh/:code', function (req, res) {
   log('refreshing code:', req.params.code, true);
-  refresh(req.params.code, function(err, response) {
-    if ( err || !token ) {
-      result = {"error": err || "bad_code"};
+  refresh(req.params.code, function (err, response) {
+    if (err || !token) {
+      result = { "error": err || "bad_code" };
       log(result.error);
       log(response);
     } else {
