@@ -58,7 +58,7 @@ function authenticate(code, cb) {
     });
   });
 
-  req.write(JSON.stringify(data));
+  req.write(data);
   req.end();
   req.on('error', function (e) { cb(e.message); });
 }
