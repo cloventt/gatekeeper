@@ -32,11 +32,13 @@ function loadConfig() {
 
 var config = loadConfig();
 
-function authenticate(code, cb) {
+function authenticate(code, state, redirect_uri, cb) {
   var data = JSON.stringify({
     client_id: config.oauth_client_id,
     client_secret: config.oauth_client_secret,
-    code: code
+    code: code,
+    redirect_uri: redirect_uri,
+    state: state,
   });
 
   var reqOptions = {
@@ -44,7 +46,11 @@ function authenticate(code, cb) {
     port: config.oauth_port,
     path: config.oauth_path,
     method: config.oauth_method,
-    headers: { 'content-length': data.length, 'content-type': 'application/json' }
+    headers: { 
+      'content-length': data.length, 
+      'content-type': 'application/json', 
+      'accept': 'applicaton/json' 
+    }
   };
 
   var body = "";
@@ -74,7 +80,11 @@ function refresh(code, cb) {
     port: config.oauth_port,
     path: config.oauth_path,
     method: config.oauth_method,
-    headers: { 'content-length': data.length, 'content-type': 'application/json' }
+    headers: { 
+      'content-length': data.length, 
+      'content-type': 'application/json', 
+      'accept': 'applicaton/json' 
+    }
   };
 
   var body = "";
@@ -115,7 +125,7 @@ function log(label, value, sanitized) {
 
 app.get('/authenticate/:code', function(req, res) {
   log('authenticating code:', req.params.code, true);
-  authenticate(req.params.code, function(err, token) {
+  authenticate(req.params.code, req.params.state, req.params.redirect_uri, function(err, token) {
     var result
     if ( err || !token ) {
       result = {"error": err || "bad_code"};
