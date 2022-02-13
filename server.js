@@ -33,7 +33,7 @@ function loadConfig() {
 var config = loadConfig();
 
 function authenticate(code, cb) {
-  var data = JSON.stringify({
+  var data = qs.encode({
     client_id: config.oauth_client_id,
     client_secret: config.oauth_client_secret,
     code: code
@@ -125,7 +125,7 @@ app.get('/authenticate/:code', function (req, res) {
       log(result.error);
       log(response);
     } else {
-      result = response;
+      result = {token: response};
       log("token", result, true);
     }
     res.header('Access-Control-Allow-Origin', '*');
