@@ -138,7 +138,7 @@ app.get('/authenticate/:code', function (req, res) {
 app.get('/refresh/:code', function (req, res) {
   log('refreshing code:', req.params.code, true);
   refresh(req.params.code, function (err, response) {
-    if (err || !token) {
+    if (err || !response) {
       result = { "error": err || "bad_code" };
       log(result.error);
       log(response);
