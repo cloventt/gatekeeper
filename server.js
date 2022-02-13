@@ -54,7 +54,7 @@ function authenticate(code, cb) {
     res.setEncoding('utf8');
     res.on('data', function (chunk) { body += chunk; });
     res.on('end', function () {
-      cb(null, JSON.stringify(qs.parse(body)));
+      cb(null, qs.parse(body));
     });
   });
 
