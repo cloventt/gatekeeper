@@ -56,7 +56,7 @@ function authenticate(code, cb) {
     res.setEncoding('utf8');
     res.on('data', function (chunk) { body += chunk; });
     res.on('end', function () {
-      req.write(data);
+      cb(bull, body);
     });
   });
 
