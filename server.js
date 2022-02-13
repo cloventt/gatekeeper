@@ -32,12 +32,16 @@ function loadConfig() {
 
 var config = loadConfig();
 
-function authenticate(code, cb) {
-  var data = JSON.stringify({
+function authenticate(code, state, cb) {
+  var data = {
     client_id: config.oauth_client_id,
     client_secret: config.oauth_client_secret,
     code: code
-  });
+  };
+
+  if (state != null) {
+    data.state = state;
+  }
 
   var reqOptions = {
     host: config.oauth_host,
@@ -60,7 +64,7 @@ function authenticate(code, cb) {
     });
   });
 
-  req.write(data);
+  req.write(JSON.stringify(data));
   req.end();
   req.on('error', function(e) { cb(e.message); });
 }
@@ -123,7 +127,7 @@ function log(label, value, sanitized) {
 
 app.get('/authenticate/:code', function(req, res) {
   log('authenticating code:', req.params.code, true);
-  authenticate(req.params.code, function(err, response) {
+  authenticate(req.params.code, req.query.state, function(err, response) {
     var result
     if ( err || !response ) {
       result = {"error": err || "bad_code"};
