@@ -33,7 +33,7 @@ function loadConfig() {
 var config = loadConfig();
 
 function authenticate(code, cb) {
-  var data = qs.stringify({
+  var data = JSON.stringify({
     client_id: config.oauth_client_id,
     client_secret: config.oauth_client_secret,
     code: code
@@ -44,7 +44,7 @@ function authenticate(code, cb) {
     port: config.oauth_port,
     path: config.oauth_path,
     method: config.oauth_method,
-    headers: { 'content-length': data.length }
+    headers: { 'content-length': data.length, 'content-type': 'application/json' }
   };
 
   var body = "";
@@ -52,7 +52,7 @@ function authenticate(code, cb) {
     res.setEncoding('utf8');
     res.on('data', function (chunk) { body += chunk; });
     res.on('end', function() {
-      cb(null, qs.parse(body).access_token);
+      cb(null, body);
     });
   });
 
@@ -62,7 +62,7 @@ function authenticate(code, cb) {
 }
 
 function refresh(code, cb) {
-  var data = qs.stringify({
+  var data = JSON.stringify({
     client_id: config.oauth_client_id,
     client_secret: config.oauth_client_secret,
     refresh_token: code,
@@ -74,7 +74,7 @@ function refresh(code, cb) {
     port: config.oauth_port,
     path: config.oauth_path,
     method: config.oauth_method,
-    headers: { 'content-length': data.length }
+    headers: { 'content-length': data.length, 'content-type': 'application/json' }
   };
 
   var body = "";
@@ -82,7 +82,7 @@ function refresh(code, cb) {
     res.setEncoding('utf8');
     res.on('data', function (chunk) { body += chunk; });
     res.on('end', function() {
-      cb(null, qs.parse(body).access_token);
+      cb(null, body);
     });
   });
 
@@ -113,15 +113,6 @@ function log(label, value, sanitized) {
 }
 
 
-// Convenience for allowing CORS on routes - GET only
-app.all('*', function (req, res, next) {
-  res.header('Access-Control-Allow-Origin', '*');
-  res.header('Access-Control-Allow-Methods', 'GET, OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'Content-Type');
-  next();
-});
-
-
 app.get('/authenticate/:code', function(req, res) {
   log('authenticating code:', req.params.code, true);
   authenticate(req.params.code, function(err, token) {
@@ -133,22 +124,27 @@ app.get('/authenticate/:code', function(req, res) {
       result = {"token": token};
       log("token", result.token, true);
     }
+    res.header('Access-Control-Allow-Origin', '*');
+    res.header('Access-Control-Allow-Methods', 'GET, OPTIONS');
+    res.header('Access-Control-Allow-Headers', 'Content-Type');
     res.json(result);
   });
 });
 
 app.get('/refresh/:code', function(req, res) {
   log('refreshing code:', req.params.code, true);
-  authenticate(req.params.code, function(err, token) {
-    var result
+  refresh(req.params.code, function(err, response) {
     if ( err || !token ) {
       result = {"error": err || "bad_code"};
       log(result.error);
     } else {
       result = {"token": token};
-      log("token", result.token, true);
+      log("token", response, true);
     }
-    res.json(result);
+    res.header('Access-Control-Allow-Origin', '*');
+    res.header('Access-Control-Allow-Methods', 'GET, OPTIONS');
+    res.header('Access-Control-Allow-Headers', 'Content-Type');
+    res.json(response);
   });
 });
 
